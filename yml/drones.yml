@@ -1,0 +1,468 @@
+swagger: '2.0'
+host: localhost:8080
+basePath: /api/v1
+
+info:
+  version: 1.0.0
+  title: Drone Control API
+  description: >
+    API REST inicial para el proyecto de drones.
+    Permite crear entidades mediante JSON o CSV y consultarlas
+    individualmente o en conjunto.
+
+schemes:
+  - http
+
+produces:
+  - application/json
+
+paths:
+  /drones:
+    post:
+      operationId: createDrone
+      summary: Crear un dron
+      description: Crea un nuevo dron en la base de datos a partir de los datos recibidos en formato JSON.
+      consumes:
+        - application/json
+      parameters:
+        - name: drone
+          in: body
+          description: Objeto con los datos necesarios para crear el nuevo dron.
+          required: true
+          schema:
+            $ref: '#/definitions/DroneData'
+      responses:
+        201:
+          description: Dron creado correctamente.
+          schema:
+            $ref: '#/definitions/Drone'
+        400:
+          description: Datos incorrectos.
+          schema:
+            $ref: '#/definitions/DroneException'
+        500:
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/DroneException'
+    get:
+      operationId: getAllDrones
+      summary: Obtener todos los drones
+      description: Obtiene todos los drones almacenados actualmente en la base de datos.
+      responses:
+        200:
+          description: Lista de drones.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Drone'
+        500:
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/DroneException'
+
+  /drones/{id}:
+    get:
+      operationId: getDroneById
+      summary: Obtener un dron por ID
+      description: Obtiene los datos de un dron concreto utilizando su identificador.
+      parameters:
+        - name: id
+          in: path
+          description: Identificador único del dron que se desea consultar.
+          required: true
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Dron encontrado.
+          schema:
+            $ref: '#/definitions/Drone'
+        404:
+          description: Dron no encontrado.
+          schema:
+            $ref: '#/definitions/DroneException'
+        500:
+          description: Error interno.
+          schema:
+            $ref: '#/definitions/DroneException'
+
+  /drones/csv:
+    post:
+      operationId: importDronesCsv
+      summary: Importar drones desde CSV
+      description: |
+        Crea varios drones a partir de datos recibidos en formato CSV.
+        Formato esperado:
+        name,model,maxAltitude,maxSpeed
+        Ejemplo:
+        Jandula-01,Holybro X500,120,15.5
+        Jandula-02,Holybro X500,100,12.8
+      consumes:
+        - text/csv
+      parameters:
+        - name: csv
+          in: body
+          description: Cadena de texto que contiene uno o varios drones representados en formato CSV.
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Drones creados correctamente.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Drone'
+        400:
+          description: CSV incorrecto.
+          schema:
+            $ref: '#/definitions/DroneException'
+
+  /sensors:
+    post:
+      operationId: createSensor
+      summary: Crear un sensor
+      description: Crea un nuevo sensor y lo almacena en la base de datos.
+      consumes:
+        - application/json
+      parameters:
+        - name: sensor
+          in: body
+          description: Objeto con los datos necesarios para crear el nuevo sensor.
+          required: true
+          schema:
+            $ref: '#/definitions/SensorData'
+      responses:
+        201:
+          description: Sensor creado.
+          schema:
+            $ref: '#/definitions/Sensor'
+        400:
+          description: Datos incorrectos.
+          schema:
+            $ref: '#/definitions/DroneException'
+        404:
+          description: Dron no encontrado.
+          schema:
+            $ref: '#/definitions/DroneException'
+    get:
+      operationId: getAllSensors
+      summary: Obtener todos los sensores
+      description: Obtiene todos los sensores almacenados actualmente en la base de datos.
+      responses:
+        200:
+          description: Lista de sensores.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Sensor'
+
+  /sensors/{id}:
+    get:
+      operationId: getSensorById
+      summary: Obtener un sensor por ID
+      description: Obtiene los datos de un sensor concreto utilizando su identificador.
+      parameters:
+        - name: id
+          in: path
+          description: Identificador único del sensor que se desea consultar.
+          required: true
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Sensor encontrado.
+          schema:
+            $ref: '#/definitions/Sensor'
+        404:
+          description: Sensor no encontrado.
+          schema:
+            $ref: '#/definitions/DroneException'
+
+  /sensors/csv:
+    post:
+      operationId: importSensorsCsv
+      summary: Importar sensores desde CSV
+      description: |
+        Crea varios sensores a partir de datos recibidos en formato CSV.
+        Formato esperado:
+        name,type,manufacturer,droneId
+        Ejemplo:
+        Front Camera,CAMERA,Luxonis,1
+        Altitude Sensor,LIDAR,Garmin,1
+        GPS Module,GPS,Holybro,2
+      consumes:
+        - text/csv
+      parameters:
+        - name: csv
+          in: body
+          description: Cadena de texto que contiene uno o varios sensores representados en formato CSV.
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Sensores creados.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Sensor'
+        400:
+          description: CSV incorrecto.
+          schema:
+            $ref: '#/definitions/DroneException'
+
+  /missions:
+    post:
+      operationId: createMission
+      summary: Crear una misión
+      description: Crea una nueva misión de vuelo y la almacena en la base de datos.
+      consumes:
+        - application/json
+      parameters:
+        - name: mission
+          in: body
+          description: Objeto con los datos necesarios para crear una nueva misión.
+          required: true
+          schema:
+            $ref: '#/definitions/MissionData'
+      responses:
+        201:
+          description: Misión creada.
+          schema:
+            $ref: '#/definitions/Mission'
+        400:
+          description: Datos incorrectos.
+          schema:
+            $ref: '#/definitions/DroneException'
+        404:
+          description: Dron no encontrado.
+          schema:
+            $ref: '#/definitions/DroneException'
+    get:
+      operationId: getAllMissions
+      summary: Obtener todas las misiones
+      description: Obtiene todas las misiones almacenadas actualmente en la base de datos.
+      responses:
+        200:
+          description: Lista de misiones.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Mission'
+
+  /missions/{id}:
+    get:
+      operationId: getMissionById
+      summary: Obtener una misión por ID
+      description: Obtiene los datos de una misión concreta utilizando su identificador.
+      parameters:
+        - name: id
+          in: path
+          description: Identificador único de la misión que se desea consultar.
+          required: true
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Misión encontrada.
+          schema:
+            $ref: '#/definitions/Mission'
+        404:
+          description: Misión no encontrada.
+          schema:
+            $ref: '#/definitions/DroneException'
+
+  /missions/csv:
+    post:
+      operationId: importMissionsCsv
+      summary: Importar misiones desde CSV
+      description: |
+        Crea varias misiones a partir de datos recibidos en formato CSV.
+        Formato esperado:
+        name,description,maxAltitude,droneId
+        Ejemplo:
+        Mission 01,Vuelo alrededor del edificio,20,1
+        Mission 02,Inspeccion del patio,15,1
+      consumes:
+        - text/csv
+      parameters:
+        - name: csv
+          in: body
+          description: Cadena de texto que contiene una o varias misiones representadas en formato CSV.
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Misiones creadas.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Mission'
+        400:
+          description: CSV incorrecto.
+          schema:
+            $ref: '#/definitions/DroneException'
+
+definitions:
+  BaseEntity:
+    type: object
+    description: Objeto base que contiene los atributos comunes de las principales entidades del sistema.
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: Identificador único de la entidad generado por el sistema.
+        example: 1
+      name:
+        type: string
+        description: Nombre utilizado para identificar la entidad.
+        example: Jandula-01
+
+  DroneData:
+    type: object
+    description: Objeto que contiene los datos necesarios para crear un nuevo dron.
+    properties:
+      name:
+        type: string
+        description: Nombre asignado al dron dentro del sistema.
+        example: Jandula-01
+      model:
+        type: string
+        description: Modelo o plataforma física del dron.
+        example: Holybro X500
+      maxAltitude:
+        type: number
+        format: double
+        description: Altitud máxima en metros que puede alcanzar el dron.
+        example: 120
+      maxSpeed:
+        type: number
+        format: double
+        description: Velocidad máxima del dron expresada en metros por segundo.
+        example: 15.5
+
+  Drone:
+    allOf:
+      - $ref: '#/definitions/BaseEntity'
+      - type: object
+        description: Entidad que representa un dron registrado en el sistema.
+        properties:
+          model:
+            type: string
+            description: Modelo o plataforma física del dron.
+            example: Holybro X500
+          maxAltitude:
+            type: number
+            format: double
+            description: Altitud máxima en metros que puede alcanzar el dron.
+            example: 120
+          maxSpeed:
+            type: number
+            format: double
+            description: Velocidad máxima del dron expresada en metros por segundo.
+            example: 15.5
+
+  SensorData:
+    type: object
+    description: Objeto que contiene los datos necesarios para crear un nuevo sensor.
+    properties:
+      name:
+        type: string
+        description: Nombre utilizado para identificar el sensor.
+        example: Front Camera
+      type:
+        type: string
+        description: Tipo de sensor instalado en el dron (CAMERA, LIDAR, GPS, IMU, TEMPERATURE, OTHER)
+        example: CAMERA
+      manufacturer:
+        type: string
+        description: Fabricante del sensor.
+        example: Luxonis
+      droneId:
+        type: integer
+        format: int64
+        description: Identificador del dron al que pertenece el sensor.
+        example: 1
+
+  Sensor:
+    allOf:
+      - $ref: '#/definitions/BaseEntity'
+      - type: object
+        description: Entidad que representa un sensor instalado o asociado a un dron.
+        properties:
+          type:
+            type: string
+            description: Tipo de sensor instalado en el dron (CAMERA, LIDAR, GPS, IMU, TEMPERATURE, OTHER)
+            example: CAMERA
+          manufacturer:
+            type: string
+            description: Fabricante del sensor.
+            example: Luxonis
+          droneId:
+            type: integer
+            format: int64
+            description: Identificador del dron al que pertenece el sensor.
+            example: 1
+
+  MissionData:
+    type: object
+    description: Objeto que contiene los datos necesarios para crear una nueva misión de vuelo.
+    properties:
+      name:
+        type: string
+        description: Nombre utilizado para identificar la misión.
+        example: Mission 01
+      description:
+        type: string
+        description: Explicación del objetivo o trabajo que debe realizarse durante la misión.
+        example: Vuelo de reconocimiento alrededor del edificio.
+      maxAltitude:
+        type: number
+        format: double
+        description: Altitud máxima en metros permitida durante la ejecución de la misión.
+        example: 20
+      droneId:
+        type: integer
+        format: int64
+        description: Identificador del dron encargado de realizar la misión.
+        example: 1
+
+  Mission:
+    allOf:
+      - $ref: '#/definitions/BaseEntity'
+      - type: object
+        description: Entidad que representa una misión de vuelo asignada a un dron.
+        properties:
+          description:
+            type: string
+            description: Explicación del objetivo o trabajo que debe realizarse durante la misión.
+            example: Vuelo de reconocimiento alrededor del edificio.
+          maxAltitude:
+            type: number
+            format: double
+            description: Altitud máxima en metros permitida durante la ejecución de la misión.
+            example: 20
+          droneId:
+            type: integer
+            format: int64
+            description: Identificador del dron encargado de realizar la misión.
+            example: 1
+
+  DroneException:
+    type: object
+    description: Objeto utilizado por la API para devolver información sobre un error producido durante una operación.
+    properties:
+      codigo:
+        type: string
+        description: Código interno utilizado para identificar el tipo de error producido.
+        example: DRONE_NOT_FOUND
+      mensaje:
+        type: string
+        description: Mensaje descriptivo que explica el error producido.
+        example: No se ha encontrado el dron solicitado.
+      strackTrace:
+        type: string
+        description: Información técnica asociada a la excepción producida en el servidor.
+        example: com.iesjandula.drone.exception.DroneException
